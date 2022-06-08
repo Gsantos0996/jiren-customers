@@ -1,0 +1,201 @@
+env:
+  ENVIRONMENT: production
+  REGION: us-east-2
+  NAMESPACE: mplus2
+
+name: Deploy to Production
+on:
+  workflow_dispatch:
+    inputs:
+      full-sha:
+        description: 'Git commit full SHA (if empty `latest`)'
+        required: false
+jobs:
+  prepare:
+    runs-on: ubuntu-latest
+    outputs:
+      APPLICATION: ${{ steps.var-application.outputs.APPLICATION }}
+      SHA_SHORT: ${{ steps.var-sha-short.outputs.SHA_SHORT }}
+      IMAGE_TAG: ${{ steps.docker-vars.outputs.IMAGE_TAG }}
+      DATE: ${{ steps.var-date.outputs.DATE }}
+      RELEASE_VERSION: ${{ steps.var-release-version.outputs.RELEASE_VERSION }}
+      TAG_NAME: ${{ steps.var-tag-name.outputs.TAG_NAME }}
+    steps:
+      - name: Variable SHA_SHORT
+        id: var-sha-short
+        run: |
+          echo ::set-output name=SHA_SHORT::$(echo ${{ github.event.inputs.full-sha == '' && github.sha || github.event.inputs.full-sha }} | cut -c1-7)
+      - name: Variable APPLICATION
+        id: var-application
+        run: |
+          echo ::set-output name=APPLICATION::${{ github.event.repository.name }}
+      - name: Variable IMAGE_TAG
+        id: docker-vars
+        run: |
+          echo ::set-output name=IMAGE_TAG::ghcr.io/${{github.repository_owner}}/${{steps.var-application.outputs.APPLICATION}}:${{steps.var-sha-short.outputs.SHA_SHORT}}
+      - name: Variable DATE
+        id: var-date
+        run: |
+          echo ::set-output name=DATE::$(TZ='America/Lima' date +'%Y-%m-%d-%H%M')
+      - name: Variable RELEASE_VERSION
+        id: var-release-version
+        run: |
+          echo ::set-output name=RELEASE_VERSION::${{steps.var-date.outputs.DATE}}
+      - name: Variable TAG_NAME
+        id: var-tag-name
+        run: |
+          echo ::set-output name=TAG_NAME::v${{steps.var-release-version.outputs.RELEASE_VERSION}}
+  checkout:
+    runs-on: ubuntu-latest
+    needs: prepare
+    steps:
+      - name: Checkout (Latest)
+        uses: actions/checkout@v2
+        if: github.event.inputs.full-sha == ''
+      - name: Checkout (Custom Ref)
+        uses: actions/checkout@v2
+        if: github.event.inputs.full-sha != ''
+        with:
+          ref: ${{ github.event.inputs.full-sha }}
+      - name: Upload Artifact
+        uses: actions/upload-artifact@v2
+        with:
+          name: artifacts
+          path: |
+            Dockerfile
+            .k8s/**/*.yaml
+          if-no-files-found: error
+  deploy-k8s:
+    runs-on: ubuntu-latest
+    needs:
+      - prepare
+      - checkout
+    steps:
+      - name: Download Artifact
+        uses: actions/download-artifact@v2
+        with:
+          name: artifacts
+      - name: Configure AWS credentials
+        uses: aws-actions/configure-aws-credentials@v1
+        with:
+          aws-access-key-id: ${{ secrets[format('AWS_ID_{0}', env.ENVIRONMENT)] }}
+          aws-secret-access-key: ${{ secrets[format('AWS_SECRET_{0}', env.ENVIRONMENT)] }}
+          aws-region: ${{env.REGION}}
+      - name: Install Kubectl
+        uses: azure/setup-kubectl@v1
+      - name: Install Kustomize
+        uses: imranismail/setup-kustomize@v1
+        with:
+          kustomize-version: "4.1.2"
+      - name: Update Kubeconfig
+        run: |
+          aws eks update-kubeconfig --name ${{env.NAMESPACE}}-${{env.ENVIRONMENT}}-eks-cluster
+      - name: Update Manifests
+        working-directory: ./.k8s/${{env.ENVIRONMENT}}
+        run: |
+          kustomize edit add annotation kubernetes.io/change-cause:"Commit: ${{ needs.prepare.outputs.SHA_SHORT }} | Date: ${{needs.prepare.outputs.DATE}}"
+          kustomize edit set image ${{ needs.prepare.outputs.IMAGE_TAG }}
+          sed -i -e 's/$ENVIRONMENT_NAME/${{env.ENVIRONMENT}}/' ../production/${{needs.prepare.outputs.APPLICATION}}.yaml
+      - name: Apply Manifests
+        run: |
+          kustomize build .k8s/${{env.ENVIRONMENT}}
+          kubectl apply -k .k8s/${{env.ENVIRONMENT}} -n ${{env.NAMESPACE}}
+  verify-deployment:
+    runs-on: ubuntu-latest
+    needs:
+      - prepare
+      - deploy-k8s
+    steps:
+      - name: Configure AWS credentials
+        uses: aws-actions/configure-aws-credentials@v1
+        with:
+          aws-access-key-id: ${{ secrets[format('AWS_ID_{0}', env.ENVIRONMENT)] }}
+          aws-secret-access-key: ${{ secrets[format('AWS_SECRET_{0}', env.ENVIRONMENT)] }}
+          aws-region: ${{env.REGION}}
+      - name: Install Kubectl
+        uses: azure/setup-kubectl@v1
+      - name: Update Kubeconfig
+        run: |
+          aws eks update-kubeconfig --name ${{env.NAMESPACE}}-${{env.ENVIRONMENT}}-eks-cluster
+      - name: Validate Deployment
+        run: |
+          kubectl rollout status deployment ${{needs.prepare.outputs.APPLICATION}} -n ${{env.NAMESPACE}}
+  create-release-branch:
+    if: github.ref == 'refs/heads/main'
+    runs-on: ubuntu-latest
+    needs: 
+      - prepare
+      - verify-deployment
+    steps:
+      - name: Checkout (Latest)
+        uses: actions/checkout@v2
+        if: github.event.inputs.full-sha == ''
+      - name: Checkout (Custom Ref)
+        uses: actions/checkout@v2
+        if: github.event.inputs.full-sha != ''
+        with:
+          ref: ${{ github.event.inputs.full-sha }}
+      - name: Create Release Branch
+        run: |
+          git checkout -b release/${{needs.prepare.outputs.RELEASE_VERSION}}
+          git push origin release/${{needs.prepare.outputs.RELEASE_VERSION}}
+  update-deployment-status:
+    runs-on: ubuntu-latest
+    needs:
+      - prepare
+      - verify-deployment
+    steps:
+      - name: Create GitHub Deployment
+        uses: bobheadxi/deployments@v0.6.0
+        id: deployment
+        with:
+          step: start
+          token: ${{ secrets.GITHUB_TOKEN }}
+          env: ${{env.ENVIRONMENT}}
+      - name: Update Deployment Status (Success)
+        uses: bobheadxi/deployments@v0.6.0
+        with:
+          step: finish
+          token: ${{ secrets.GITHUB_TOKEN }}
+          status: "success"
+          deployment_id: ${{ steps.deployment.outputs.deployment_id }}
+  create-github-release:
+    runs-on: ubuntu-latest
+    needs:
+      - prepare
+      - verify-deployment
+    steps:
+      - name: Checkout (Latest)
+        uses: actions/checkout@v2
+        if: github.event.inputs.full-sha == ''
+      - name: Checkout (Custom Ref)
+        uses: actions/checkout@v2
+        if: github.event.inputs.full-sha != ''
+        with:
+          ref: ${{ github.event.inputs.full-sha }}
+      - name: Create tag
+        uses: actions/github-script@v4.1.0
+        with:
+          github-token: ${{ secrets.GITHUB_TOKEN }}
+          script: |
+            github.git.createRef({
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              ref: "refs/tags/${{needs.prepare.outputs.TAG_NAME}}",
+              sha: "${{ github.event.inputs.full-sha == '' && github.sha || github.event.inputs.full-sha }}"
+            })
+      - name: Build Changelog
+        id: change-log
+        uses: mikepenz/release-changelog-builder-action@v2.4.0
+        with:
+          configuration: ".github/config/changelog.json"
+          toTag: ${{needs.prepare.outputs.TAG_NAME}}
+          token: ${{ secrets.GITHUB_TOKEN }}
+      - name: Create Release
+        uses: actions/create-release@v1
+        with:
+          tag_name: ${{needs.prepare.outputs.TAG_NAME}}
+          release_name: ${{needs.prepare.outputs.TAG_NAME}}
+          body: ${{steps.change-log.outputs.changelog}}
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}

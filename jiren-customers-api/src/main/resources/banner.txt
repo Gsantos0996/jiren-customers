@@ -1,0 +1,50 @@
+${AnsiColor.BRIGHT_BLUE} ::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
+                                                                ``  ```.i*znnn#*,`  `  `                                                              
+                                                                ````,*nn+i:,,,;izx#,```                                                               
+                                                                i:++;;*i. ```````  `:i;i `                                                            
+                                                            ` `*z:+####,```````````` ``#+``                                                           
+                                                            `:#ii####+: ``````````````` ;+.                                                           
+                                                           `:x;*#####;```````````````````:z`                                                          
+                                                          ``M+i##+##+.```````````````` ```*i                                                          
+                                                        ` `;x*#++++++.``````````````````` .n`                                                         
+                                                           z#+#++++++,``````````````````` `#,                                                         
+                                                          `W+++++++++,```````````````````  *:                                                         
+                                                          `M+++++++++:``````````````````   i:                                                         
+                                                         `.M++#++++++:`````````````.`````  *:                                                         
+                                                        .+;##+#+z##++:.,```````,*;..`.``,``;i#`                                                       
+                                                        ##.:##+*zWxz#i,,,`````.*i..`.`:*#``,.;+`                                                      
+                                                        zz.`:++#+@@@#**,..```.`..`:;.`+i*`.``,#`                                                      
+                                                        ini`.*+++nW@z:i#i,`````,*nWWzz#*,:.``*i                                                       
+                                                        `x#ii+#++##znzz#+*.````,#MMWx#*``:``.n``                                                      
+                                                         ,;nxn###+i;::,....`````,:;;:,` i#+#z:``                                                      
+                                                        ` `.:zMz++;``````.*i*:```.```` ,nn*:, ``                                                      
+                                                           ``Wxz##*.``````,:,````````` *,z``                                                          
+                                                        `   +M##zz#i`````````````````.;,`**                                                           
+                                                        ```.Mx###nz#:.``````..`````.:;,``.z` `                                                        
+                                                        ```+Mn++##zxz*,````,,.````:#n..`.`+,  `                                                       
+                                                         `iWMz####n####z*,.,,.`;++#z#.`.:*zMn*.                                                       
+                                                       .*xW@@Mnz##xz+#+#nn+:.:+z####z;+nxnnxxMx*.                                                     
+                                                  ``:inxMMW@@@@WWWWWxxnnnnxxxxMMMMMMMMMWMnnxxnxxxzi.                                                  
+                                                 ,;#MMxMMMW@@W@@@@@@@@@W@W@W@MWWMMMWMWMMMxnnxnnnnnMn;;`                                               
+                                               `iWxxxMWMMWW@@@@@@@W@@@@@@@WW@WWMMMMWMMMMMMnnnnnnnnnnxW+`                                              
+                              `` ```        `:xnnxMMWMWWWWWW@@@@W@@@W@@@WW@@@WWMMMMWMMMMMMMMMxxnnnnnnnnzMi``    `      `                              
+                            ```` `.:::::::::iMMnxMMMWWWWWWWWWMMMMWWWW@WWWW@@WWWMMMWMMMMMMMMMMMxxxnnnnnnnxMi+++++++*;ii;.  `                           
+                           `,*nxxxxxxnnnnnxxxnxMMWWW@WWMMMMMWMMMMMMMMWWMMMWWWWWWMMWMMMMMMMMMMMMMMMxnnnnnnnxnxnnnxnxxxxxnxMn;`                         
+                     ```:iizMMxxxxxxxxxxxxxxxxMWWMWWWWMMMMMWMMMMWWMMWMWWMMMMMMMMMMWMMMMMMMMMMMMMMMMMxxnnnnnnnnnnnnnnnnnnnnxMnii.` `                   
+                `````,*#xxMxxxMWMMMMMMMMMMWWWWMMWWMMMMMMMMMMMMMMMMMMWMMWMMMWMMMMMMMMMMMMMMMMMMMMMMMMMxnnnnnnnnnxxxxxxxxxxnnnxxxni:``   `              
+                . ``iMxnnnxWWMMMMMMMMMMMMMMMMMMWMMMMMMMMMMMMMMMMMMMMMMMWWMMMMMMMMMMMMMMMMMMMMMMMMMMMMMnnnnnnnnnnxWMMMMMMMxxMxnz#nx:``                 
+                ```,xxnnnxMMWWWMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMWWMMMMMMMMMMMMMMMMMMMxMMMMMMMMMxnnnnnnnnnxxMMMMMWMW@xnnzz#zx,```               
+                ``#xnnxxxMMMxMWWMMWMMMMMMMMMMMMWWMMWWWWWWWWWWWWWWWWWWMWWMMMMMMMMMMMMMMMMMMMMMMMMMMMMMWMxxxnnnnnnnnnxMMMMWWMMxxnzzzzn*`                
+               `iMnznMMMMMMMxMMMWMMMMMMWMMMMWWW@@WWWMWMMMMMMMMMMMMMMMMWWWMMMMMMMMMMMMMMMxMMMMMMMMMMMMMMMMMxnnxMxnnnnnnWWxxxMxMMMxnzz#x.`              
+             ``,xnnnxMMMMMMMxMxxMMMMMMMMMMMWW@@WW@WMMMMMMMMMMMMMWMMMMMMMWWMMMMMMMMMMMMMMMxMMMMMMMMMMMMMxMMMMxxnxxxxnnxxMMxMMMMxxxxnz#n#`              
+            ```xnnxMMMMxMMMMxxxxxMMWWMMMMMW@W@@@WWWMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMxxxMxnzxMMMxMMxxxMxzz#ni              
+             `;MnxMMMWMMMMMMMxxxxxxxMWWMWWWW@@W@WWMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMWMnnnnnxMMMxxxxxMMxnzzx`                
+${AnsiColor.BRIGHT_BLUE} ::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
+${AnsiColor.BRIGHT_BLUE}:: Copyright © M++
+:: Develop by M++
+:: Software Architect Nones
+:: Backend Developer Nones
+:: Frontend Developer Nones
+:: Running Spring Boot ${spring-boot.version}
+:: Service Name ${spring.application.name}
+${AnsiColor.DEFAULT}

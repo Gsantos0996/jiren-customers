@@ -1,0 +1,92 @@
+name: Build
+on:
+  pull_request:
+    branches:
+      - main
+  push:
+    branches: 
+      - 'release/**'
+jobs:
+  prepare:
+    runs-on: ubuntu-latest
+    outputs:
+      APPLICATION: ${{ steps.var-application.outputs.APPLICATION }}
+      SHA_SHORT: ${{ steps.var-sha-short.outputs.SHA_SHORT }}
+      IMAGE_TAG: ${{ steps.docker-vars.outputs.IMAGE_TAG }}
+    steps:
+      - name: Variable SHA_SHORT
+        id: var-sha-short
+        run: |
+          echo ::set-output name=SHA_SHORT::$(echo ${GITHUB_SHA} | cut -c1-7)
+      - name: Variable APPLICATION
+        id: var-application
+        run: |
+          echo ::set-output name=APPLICATION::${{ github.event.repository.name }}
+      - name: Variable IMAGE_TAG
+        id: docker-vars
+        run: |
+          echo ::set-output name=IMAGE_TAG::ghcr.io/${{github.repository_owner}}/${{steps.var-application.outputs.APPLICATION}}:${{steps.var-sha-short.outputs.SHA_SHORT}}
+  build-and-test:
+    runs-on: ubuntu-latest
+    needs: prepare
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v2
+      - name: Set up JDK 11
+        uses: actions/setup-java@v1
+        with:
+          java-version: 11
+      - name: Generate settings.xml
+        uses: whelk-io/maven-settings-xml-action@v14
+        with:
+          repositories: >-
+            [{ "id": "github", "url": "https://maven.pkg.github.com/katu-digital/*", "snapshots": { "enabled": "true" } }]
+          servers: >-
+            [{ "id": "github", "username": "${env.GH_USER}", "password": "${env.GH_TOKEN}" }]
+      - name: Cache Maven packages
+        uses: actions/cache@v2
+        with:
+          path: ~/.m2
+          key: ${{ runner.os }}-m2-${{ hashFiles('**/pom.xml') }}
+          restore-keys: ${{ runner.os }}-m2
+      - name: Compile, Package, Verify
+        run: mvn -f jiren-customers-agregation/pom.xml --batch-mode --update-snapshots verify
+        env:
+          GH_USER: ${{ secrets.GH_USER }}
+          GH_TOKEN: ${{ secrets.GH_CREDENTIALS }}
+      - name: Upload Artifact
+        uses: actions/upload-artifact@v2
+        with:
+          name: artifacts
+          path: |
+            jiren-customers-api/target/*.jar
+            Dockerfile
+          if-no-files-found: error
+  generate-image:
+    runs-on: ubuntu-latest
+    needs: 
+      - prepare
+      - build-and-test
+    steps:
+      - name: Download Artifact
+        uses: actions/download-artifact@v2
+        with:
+          name: artifacts
+      - name: Docker Login
+        uses: docker/login-action@v1.6.0
+        with:
+          registry: ghcr.io
+          username: ${{ secrets.GH_USER }}
+          password: ${{ secrets.GH_CREDENTIALS }}
+      - name: Setup Buildx
+        id: buildx
+        uses: docker/setup-buildx-action@master
+        with:
+          install: true
+      - name: Generate Image and Push to Registry
+        uses: docker/build-push-action@v2.2.0
+        with:
+          tags: ${{ needs.prepare.outputs.IMAGE_TAG }}
+          context: .
+          push: ${{github.event_name == 'pull_request' && false || true }}
+          builder: ${{ steps.buildx.outputs.name }}

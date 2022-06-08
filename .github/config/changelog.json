@@ -1,0 +1,34 @@
+{
+  "categories": [
+    {
+      "title": "## 🚀 Features",
+      "labels": ["Feature", "feat"]
+    },
+    {
+      "title": "## 🐛 Fixes",
+      "labels": ["Hotfix","fix"]
+    }
+  ],
+  "ignore_labels": [
+    "Bug"
+  ],
+  "template": "${{CHANGELOG}}\n\n## 💬 Other\n${{UNCATEGORIZED}}\n",
+  "label_extractor": [
+    {
+      "pattern": "[^:]*",
+      "on_property": "title",
+      "target": "$1",
+      "method": "match"
+    }
+  ],
+  "transformers": [
+    {
+      "pattern": "[\\-\\*] (.+):\\s([a-zA-Z0-9]{1,10}-\\d+)\\s(.+)\n(.+?[\\-\\*] )(.+)",
+      "target": "- $1: $2 $3\n  - Issue: [$2](https://alicorpdigital.atlassian.net/browse/$2) | $5"
+    }
+  ],
+  "max_tags_to_fetch": 50,
+  "tag_resolver": {
+    "method": "sort"
+  }
+}

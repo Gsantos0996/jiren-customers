@@ -1,0 +1,135 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: jiren-customers
+  labels:
+    app: jiren-customers
+spec:
+  revisionHistoryLimit: 5
+  replicas: 1
+  progressDeadlineSeconds: 500
+  selector:
+    matchLabels:
+      app: jiren-customers
+  template:
+    metadata:
+      labels:
+        app: jiren-customers
+    spec:
+      containers:
+      - name: jiren-customers
+        image: ghcr.io/katu-digital/jiren-customers:latest
+        imagePullPolicy: Always
+        ports:
+        - containerPort: 7181
+        env:
+        - name: SPRING_PROFILES_ACTIVE
+          value: default,$ENVIRONMENT_NAME
+        - name: SPRING_CLOUD_CONFIG_USERNAME
+          valueFrom:
+            secretKeyRef:
+              name: config-server-authentication-jiren
+              key: username
+        - name: SPRING_CLOUD_CONFIG_PASSWORD
+          valueFrom:
+            secretKeyRef:
+              name: config-server-authentication-jiren
+              key: password
+        - name: KAFKA_USERNAME
+          valueFrom:
+            secretKeyRef:
+              name: kafka-authentication
+              key: username
+        - name: KAFKA_PASSWORD
+          valueFrom:
+            secretKeyRef:
+              name: kafka-authentication
+              key: password
+        - name: TENANT_USERNAME
+          valueFrom:
+            secretKeyRef:
+              name: tenant-authentication
+              key: username
+        - name: TENANT_PASSWORD
+          valueFrom:
+            secretKeyRef:
+              name: tenant-authentication
+              key: password
+        - name: DATABASE_USERNAME
+          valueFrom:
+            secretKeyRef:
+              name: database-authentication
+              key: username
+        - name: DATABASE_PASSWORD
+          valueFrom:
+            secretKeyRef:
+              name: database-authentication
+              key: password
+        - name: S3_ACCESS_KEY
+          valueFrom:
+            secretKeyRef:
+              name: aws-authentication
+              key: s3-access-key
+        - name: S3_SECRET_KEY
+          valueFrom:
+            secretKeyRef:
+              name: aws-authentication
+              key: s3-secret-key
+        readinessProbe:
+          httpGet:
+            path: /customers/actuator/health
+            port: 7181
+          initialDelaySeconds: 120
+          periodSeconds: 50
+        livenessProbe:
+          httpGet:
+            path: /customers/actuator/health
+            port: 7181
+          initialDelaySeconds: 120
+          periodSeconds: 50
+        resources:
+          limits:
+            memory: 750Mi
+            cpu: 0.5
+          requests:
+            memory: 500Mi
+            cpu: 0.25
+      imagePullSecrets:
+      - name: regcred
+---
+apiVersion: autoscaling/v2beta2
+kind: HorizontalPodAutoscaler
+metadata:
+  name: jiren-customers
+  labels:
+    app: jiren-customers
+spec:
+  scaleTargetRef:
+    apiVersion: apps/v1
+    kind: Deployment
+    name: jiren-customers
+  minReplicas: 1
+  maxReplicas: 5
+  metrics:
+  - type: Resource
+    resource:
+      name: cpu
+      target:
+        type: Utilization
+        averageUtilization: 75
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: jiren-customers
+  labels:
+    app: jiren-customers
+spec:
+  type: NodePort
+  selector:
+    app: jiren-customers
+  ports:
+  - protocol: TCP
+    port: 7181
+    targetPort: 7181
+

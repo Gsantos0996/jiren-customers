@@ -1,0 +1,9 @@
+spring:
+  application:
+    name: jiren-customers
+  cloud:
+    config:
+      uri: http://jiren-config:7184
+server:
+  error:
+    include-message: always

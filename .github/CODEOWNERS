@@ -1,0 +1,9 @@
+# Los usuarios listados en este archivo tienen la responsabilidad de garantizar la practicidad, legibilidad además de mantener actualizada la misma.
+# Unicamente ellos podran aprobar Pull Request previo a su merge con la rama main
+
+* @omar2308 @JuanDiegoCrisanto @omarnoelsegura @Nikkolo21 @StephanieMQ @AndreaChangg @ycortezv @YeseniaSuarez @carloslarosasanchez @LuisAntonioDuranCarrillo @katherinluna6 @CristhianCastilloT @NextLeiva
+
+# Los cambios sobre la configuración específica del repositorio deberá ser revisada y aceptada por:
+
+.github/* @katu-digital/ops
+.k8s/* @katu-digital/ops

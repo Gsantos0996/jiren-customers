@@ -1,0 +1,13 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: jiren-customers
+spec:
+  template:
+    spec:
+      containers:
+      - name: jiren-customers
+        resources:
+          requests:
+            memory: 500Mi
+            cpu: 100m
